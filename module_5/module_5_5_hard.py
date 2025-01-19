@@ -28,19 +28,19 @@
 # Каждый объект класса UrTube должен обладать следующими атрибутами и методами:
 #     1. Атриубты: users(список объектов User), videos(список объектов Video), current_user(текущий пользователь, User)
 #     2. Метод log_in, который принимает на вход аргументы: nickname, password и пытается найти пользователя в users
-#     с такими же логином и паролем. Если такой пользователь существует, то current_user меняется на найденного.
-#     Помните, что password передаётся в виде строки, а сравнивается по хэшу.
+#        с такими же логином и паролем. Если такой пользователь существует, то current_user меняется на найденного.
+#        Помните, что password передаётся в виде строки, а сравнивается по хэшу.
 #     3. Метод register, который принимает три аргумента: nickname, password, age, и добавляет пользователя в список,
-#     если пользователя не существует (с таким же nickname). Если существует, выводит на экран:
-#     "Пользователь {nickname} уже существует". После регистрации, вход выполняется автоматически.
+#        если пользователя не существует (с таким же nickname). Если существует, выводит на экран:
+#        "Пользователь {nickname} уже существует". После регистрации, вход выполняется автоматически.
 #     4. Метод log_out для сброса текущего пользователя на None.
 #     5. Метод add, который принимает неограниченное кол-во объектов класса Video и все добавляет в videos,
-#     если с таким же названием видео ещё не существует. В противном случае ничего не происходит.
+#        если с таким же названием видео ещё не существует. В противном случае ничего не происходит.
 #     6. Метод get_videos, который принимает поисковое слово и возвращает список названий всех видео, содержащих
-#     поисковое слово. Следует учесть, что слово 'UrbaN' присутствует в строке 'Urban the best' (не учитывать регистр).
+#        поисковое слово. Следует учесть, что слово 'UrbaN' присутствует в строке 'Urban the best' (не учитывать регистр).
 #     7. Метод watch_video, который принимает название фильма, если не находит точного совпадения(вплоть до пробела),
-#     то ничего не воспроизводится, если же находит - ведётся отчёт в консоль на какой секунде ведётся просмотр.
-#     После текущее время просмотра данного видео сбрасывается.
+#        то ничего не воспроизводится, если же находит - ведётся отчёт в консоль на какой секунде ведётся просмотр.
+#        После текущее время просмотра данного видео сбрасывается.
 #
 # Для метода watch_video так же учитывайте следующие особенности:
 #     1. Для паузы между выводами секунд воспроизведения можно использовать функцию sleep из модуля time.
@@ -91,33 +91,33 @@
 #     Чтобы не запутаться рекомендуется после реализации каждого метода проверять как он работает,
 #     тестировать разные вариации.
 
+import  time
 import hashlib
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
 
-def check_password(stored_password, provided_password):
-    return stored_password == hashlib.sha256(provided_password.encode()).hexdigest()
-
-# ================================
 class User:
 
+    @staticmethod
+    def hash_password(password):
+        return hashlib.sha256(password.encode()).hexdigest()
+
     def __init__(self, nickname, password, age):
-        self.nickname = nickname    # имя пользователя, строка
-        self.password = hash_password(password)    # password в хэшированном виде, число
-        self.age = age              # возраст, число
+        self.nickname = nickname  # имя пользователя, строка
+        self.password = self.hash_password(password)  # password в хэшированном виде, число
+        self.age = age  # возраст, число
 
 
-# ================================
 class Video:
-    def __init__(self, title = '', duration = 0, time_now = 0, adult_mode = False):
+
+    def __init__(self, title='', duration=0, time_now=0, adult_mode=False):
         self.title = title
         self.duration = duration
         self.time_now = time_now
         self.adult_mode = adult_mode
 
-# ================================
+
 class UrTube:
+
     def __init__(self, users=None, videos=None, current_user=None):
         if users is None:
             self.users = list()
@@ -127,34 +127,38 @@ class UrTube:
             self.videos = list()
         else:
             self.videos = videos
-        self.current_user = None
+        self.current_user = current_user
         self.video_library = list()
 
-    def get_user(self, nickname):
+    def get_user_by(self, nickname):
         for user in self.users:
             if user.nickname == nickname:
                 return user
         return None
 
+    @staticmethod
+    def check_password(stored_password, provided_password):
+        return stored_password == hashlib.sha256(provided_password.encode()).hexdigest()
+
     def log_in(self, nickname, password):
-        db_user = self.get_user(nickname)
-        if db_user == None:
+        user_in_db = self.get_user_by(nickname)
+        if user_in_db is None:
             print(f"Пользователь {nickname} не зарегистрирован")
             return
-        if check_password(db_user.password, password):
-            self.current_user = db_user
+        if self.check_password(user_in_db.password, password):
+            self.current_user = user_in_db
 
     def register(self, nickname, password, age):
-        db_user = self.get_user(nickname)
+        db_user = self.get_user_by(nickname)
         if db_user:
             print(f"Пользователь {nickname} уже существует")
         else:
             new_user = User(nickname, password, age)
-            list(self.users).append(new_user)
+            self.users.append(new_user)
             print(f"Пользователь {nickname} добавлен")
-            self.current_user = self.get_user(nickname)
+            self.current_user = self.get_user_by(nickname)
 
-    def log_out(self ):
+    def log_out(self):
         self.current_user = None
 
     def add(self, *videos):
@@ -170,11 +174,26 @@ class UrTube:
                 result.append(video.title)
         return result
 
+    def watch_video(self, searched_title):
+        requested_video = None
+        for video in self.video_library:
+            if video.title == searched_title:
+                requested_video = video
+        if requested_video is None:
+            print(f'Нет такого видео: {searched_title}')
+            return
 
-    def watch_video(self, video):
-        print("Войдите в аккаунт, чтобы смотреть видео")
-        print("Вам нет 18 лет, пожалуйста покиньте страницу")
-        print("Конец видео")
+        if self.current_user is None:
+            print("Войдите в аккаунт, чтобы смотреть видео.")
+        elif requested_video.adult_mode and self.current_user.age < 18:
+            print("Вам нет 18 лет. Пожалуйста, покиньте страницу.")
+        else:
+            print(f"Просмотр видео: {requested_video.title}")
+            for requested_video.time_now in range(requested_video.duration):
+                print(requested_video.time_now + 1, end=' ')
+                time.sleep(1)
+            print("Конец видео")
+            requested_video.time_now = 0
 
 
 # Код для проверки:
@@ -191,22 +210,20 @@ if __name__ == '__main__':
     print(ur.get_videos('ПРОГ'))
 
     # Проверка на вход пользователя и возрастное ограничение
-    # ur.watch_video('Для чего девушкам парень программист?')
+    ur.watch_video('Для чего девушкам парень программист?')
 
     ur.register('vasya_pupkin', 'lolkekcheburek', 13)
-    ur.register('vasya_pupkin', 'lolkekcheburek', 13)
 
-    # ur.watch_video('Для чего девушкам парень программист?')
-    # ur.register('urban_pythonist', 'iScX4vIJClb9YQavjAgF', 25)
-    # ur.watch_video('Для чего девушкам парень программист?')
+    ur.watch_video('Для чего девушкам парень программист?')
+    ur.register('urban_pythonist', 'iScX4vIJClb9YQavjAgF', 25)
+    ur.watch_video('Для чего девушкам парень программист?')
 
     # Проверка входа в другой аккаунт
-    # ur.register('vasya_pupkin', 'F8098FM8fjm9jmi', 55)
-    # print(ur.current_user)
+    ur.register('vasya_pupkin', 'F8098FM8fjm9jmi', 55)
+    print(f'Текущий пользователь: {ur.current_user.nickname}')
 
     # Попытка воспроизведения несуществующего видео
-    # ur.watch_video('Лучший язык программирования 2024 года!')
-
+    ur.watch_video('Лучший язык программирования 2024 года!')
 
 # Вывод в консоль:
 # ['Лучший язык программирования 2024 года']
