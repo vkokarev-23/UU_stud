@@ -34,7 +34,7 @@
 #    4. Метод __is_valid_sides - служебный, принимает неограниченное кол-во сторон,
 #       возвращает True, если все стороны целые положительные числа и кол-во новых сторон совпадает с текущим,
 #       False - во всех остальных случаях.
-#    5. Метод get_sides должен возвращать значение я атрибута __sides.
+#    5. Метод get_sides должен возвращать значение атрибута __sides.
 #    6. Метод __len__ должен возвращать периметр фигуры.
 #    7. Метод set_sides(self, *new_sides) должен принимать новые стороны,
 #       если их количество не равно sides_count, то не изменять, в противном случае - менять.
@@ -59,10 +59,10 @@
 # ВАЖНО!
 # При создании объектов делайте проверку на количество переданных сторон, если сторон не ровно sides_count,
 # то создать массив с единичными сторонами и в том кол-ве, которое требует фигура.
-# Пример 1: Circle((200, 200, 100), 10, 15, 6), т.к. сторона у круга всего 1, то его стороны будут - [1]
-# Пример 2: Triangle((200, 200, 100), 10, 6), т.к. сторон у треугольника 3, то его стороны будут - [1, 1, 1]
-# Пример 3: Cube((200, 200, 100), 9), т.к. сторон(рёбер) у куба - 12, то его стороны будут - [9, 9, 9, ....., 9] (12)
-# Пример 4: Cube((200, 200, 100), 9, 12), т.к. сторон(рёбер) у куба - 12, то его стороны будут - [1, 1, 1, ....., 1]
+# Пример 1: Circle((200, 200, 100), 10, 15, 6), так как сторона у круга всего 1, то его стороны будут - [1]
+# Пример 2: Triangle((200, 200, 100), 10, 6), так как сторон у треугольника 3, то его стороны будут - [1, 1, 1]
+# Пример 3: Cube((200, 200, 100), 9), так как сторон(рёбер) у куба - 12, то его стороны будут - [9, 9, 9, ....., 9] (12)
+# Пример 4: Cube((200, 200, 100), 9, 12), так как сторон(рёбер) у куба - 12, то его стороны будут - [1, 1, 1, ....., 1]
 #
 # Код для проверки:
 # circle1 = Circle((200, 200, 100), 10) # (Цвет, стороны)
@@ -102,33 +102,179 @@
 #     4. Помните, служебные инкапсулированные методы можно и нужно использовать только внутри текущего класса.
 #     5. Вам не запрещается вводить дополнительные атрибуты и методы, творите, но не переборщите!
 
+import math  # для использования функции импортировать библиотеку math
 
-class Figure():
-    sides_count = 0
-    __sides = list()    # список сторон, целые числа
-    __color = list()    # список цветов в формате RGB
+
+class Figure:
+    sides_count = 0     # количество сторон, переопределяется в
+                        # Circle: sides_count = 1
+                        # Triangle: sides_count = 3
+                        # Cube: sides_count = 12
+
+    __color = tuple()   # список цветов в формате RGB
+    __sides = tuple()   # список сторон, целые числа
     filled = False      # закрашенный, bool
 
+    def __init__(self, r, g, b, *new_sides):
+        self.__color = 0, 0, 0
+        # self.__sides = list()
+        self.filled = False
+
+        if self.__is_valid_color(r, g, b):
+            self.__color = r, g, b
+
+        if self.__is_valid_sides(*new_sides):
+            self.__sides = new_sides
+        else:
+            self.__sides = (1,) * self.sides_count
+
+    @staticmethod
+    def __is_valid_color(r, g, b):
+        # Проверяет корректность переданных значений.
+        # Все значения r, g и b - целые числа в диапазоне от 0 до 255
+        test_color = True
+        for color in r, g, b:
+            test_color = test_color and 0 <= color <= 255
+        return test_color
+
+    def get_color(self):  # Возвращает список RGB цветов.
+        return self.__color
+
+    def set_color(self, r, g, b):
+        # Принимает параметры r, g, b - числа и изменяет атрибут __color на соответствующие значения,
+        # предварительно проверив их на корректность. Если введены некорректные данные, то цвет остаётся прежним.
+        if self.__is_valid_color(r, g, b):
+            self.__color = r, g, b
+
+    def __is_valid_sides(self, *new_sides):
+        # Принимает неограниченное кол-во сторон, возвращает True, если все стороны
+        # целые положительные числа и кол-во новых сторон совпадает с текущим,
+        # False - во всех остальных случаях.
+        if len(new_sides) != self.sides_count:
+            test_sides = False
+        else:
+            test_sides = True
+            for side in new_sides:
+                test_sides = test_sides and 0 < side and isinstance(side, int)
+        return test_sides
+
+    def get_sides(self):  # Возвращает значение атрибута __sides.
+        return self.__sides
+
+    def set_sides(self, *new_sides):
+        # Принимает новые стороны, если их количество не равно sides_count, то не изменять,
+        # в противном случае - менять.
+        if self.__is_valid_sides(*new_sides):
+            self.__sides = new_sides
+
+    def __len__(self):  # Периметр фигуры. Периметр куба это что? Сумма длин всех ребер?
+        length = 0
+        for side in self.__sides:
+            length += side
+        return length
+
+
 class Circle(Figure):
+    # Пример 1: Circle((200, 200, 100), 10, 15, 6) так как сторона у круга всего 1, то его стороны будут - [1].
     sides_count = 1
     __radius = 0
 
-    def get_square(self):   # возвращает площадь круга
+    def __init__(self, r, g, b, *new_sides):
+        super().__init__(r, g, b, *new_sides)
+        circumference = super().get_sides()[0]
+        self.__radius = circumference / (2 * math.pi)
         pass
+
+    # def __len__(self):  # Периметр фигуры.
+    #     return 2 * math.pi * self.__radius
+
+    def get_square(self):  # Возвращает площадь круга.
+        return math.pi * math.pow(self.__radius, 2)
 
 
 class Triangle(Figure):
+    # Пример 2: Triangle((200, 200, 100), 10, 6), так как сторон у треугольника 3, то его стороны будут - [1, 1, 1]
     sides_count = 3
 
-    def get_square(self):   # возвращает площадь треугольника
-        pass
+    def get_square(self):  # Возвращает площадь треугольника.
+        a, b, c = self.get_sides()
+        p = len(self) / 2
+        s = math.sqrt(p * (p - a) * (p - b) * (p - c))
+        return s
 
 
 class Cube(Figure):
+    # Пример 3: Cube((200, 200, 100), 9), так как сторон(рёбер) у куба - 12, то его стороны будут - [9, 9, 9, ....., 9] (12)
+    # Пример 4: Cube((200, 200, 100), 9, 12), так как сторон(рёбер) у куба - 12, то его стороны будут - [1, 1, 1, ....., 1]
     sides_count = 12
 
-    def reset_sides(self, side):    # Переопределить __sides сделав список из 12 одинаковы сторон
+    def reset_sides(self, side):  # Переопределяет __sides, сделав список из 12 одинаковы сторон.
         pass
 
-    def get_volume(self):   # возвращает объём куба
-        pass
+    def get_volume(self):  # Возвращает объём куба.
+        edge = self.get_sides()[0]
+        return edge ** 3
+
+
+# Отладка
+if __name__ == '__main__':
+
+    # fig1 = Figure(0, 0, 0, )
+    # fig2 = Figure(-1, 0, 0, )
+    # fig3 = Figure(0, 100, 255, )
+    # fig4 = Figure(0, 100, 256, )
+    # fig5 = Figure(-255, -1, -100, )
+    # fig6 = Figure(200, 200, 100 )
+    # fig7 = Figure(200, 200, 100, 10)
+    # fig8 = Figure(200, 200, 100, 10, 15)
+    # fig9 = Figure(200, 200, 100, 10, 15, 6)
+
+
+    # Пример 1: Circle((200, 200, 100), 10, 15, 6), так как сторона у круга всего 1, то его стороны будут - [1]
+    # cir1 = Circle(10, 20, 30, 9)
+    # cir2 = Circle(10, 20, 100, 15)
+    # circ = Circle(10, 20, 30, 100, 150)
+    # circ = Circle(10, 20, 30, 100)
+    #
+    # c_count = circ.sides_count
+    #
+    # c_color = circ.get_color()
+    # circ.set_color(40, 50, 60)
+    # c_color = circ.get_color()
+    #
+    # c = circ.sides_count
+    # s = circ.get_square()
+    # l = len(circ)
+    #
+    # circ.set_sides(13)
+    # l = len(circ)
+    # s = circ.get_square()
+    #
+    #
+
+    # Пример 2: Triangle((200, 200, 100), 10, 6), так как сторон у треугольника 3, то его стороны будут - [1, 1, 1]
+    # tria1 = Triangle(200, 200, 200, 3)
+    # tria2 = Triangle(200, 200, 200, 3, 4)
+    # tria = Triangle(200, 200, 200, 3, 4, 5)
+    # t_count = tria.sides_count
+    # t_len = len(tria)
+    #
+    # t_color = tria.get_color()
+    # tria.set_color(10, 20, 30)
+    # t_color = tria.get_color()
+    #
+    # tria.set_sides(3, 4, 5)
+    # t_sides = tria.get_sides()
+    # t_sqr = tria.get_square()
+    #
+    # tria.set_sides(9, 10, 11)
+    # t_sides = tria.get_sides()
+    # t_sqr = tria.get_square()
+    #
+
+    # Пример 3: Cube((200, 200, 100), 9), так как сторон(рёбер) у куба - 12, то его стороны будут - [9, 9, 9, ....., 9] (12)
+    # cub1 = Cube(200, 200, 100, 9)
+    # b_len = len(cub1)
+    # cub1.set_sides( *((2,) * 12))
+    # b_len = len(cub1)
+    # Пример 4: Cube((200, 200, 100), 9, 12), так как сторон(рёбер) у куба - 12, то его стороны будут - [1, 1, 1, ....., 1]
