@@ -117,7 +117,6 @@ class Figure:
 
     def __init__(self, r, g, b, *new_sides):
         self.__color = 0, 0, 0
-        # self.__sides = list()
         self.filled = False
 
         if self.__is_valid_color(r, g, b):
@@ -134,7 +133,7 @@ class Figure:
         # Все значения r, g и b - целые числа в диапазоне от 0 до 255
         test_color = True
         for color in r, g, b:
-            test_color = test_color and 0 <= color <= 255
+            test_color = test_color and 0 <= color <= 255 and isinstance(color, int)
         return test_color
 
     def get_color(self):  # Возвращает список RGB цветов.
@@ -168,10 +167,7 @@ class Figure:
             self.__sides = new_sides
 
     def __len__(self):  # Периметр фигуры. Периметр куба это что? Сумма длин всех ребер?
-        length = 0
-        for side in self.__sides:
-            length += side
-        return length
+        return sum(self.__sides)
 
 
 class Circle(Figure):
@@ -183,13 +179,11 @@ class Circle(Figure):
         super().__init__(r, g, b, *new_sides)
         circumference = super().get_sides()[0]
         self.__radius = circumference / (2 * math.pi)
-        pass
-
-    # def __len__(self):  # Периметр фигуры.
-    #     return 2 * math.pi * self.__radius
 
     def get_square(self):  # Возвращает площадь круга.
-        return math.pi * math.pow(self.__radius, 2)
+        circumference = self.get_sides()[0]
+        s_circ = math.pow(circumference, 2) / (4 * math.pi)
+        return s_circ
 
 
 class Triangle(Figure):
@@ -204,20 +198,26 @@ class Triangle(Figure):
 
 
 class Cube(Figure):
-    # Пример 3: Cube((200, 200, 100), 9), так как сторон(рёбер) у куба - 12, то его стороны будут - [9, 9, 9, ....., 9] (12)
-    # Пример 4: Cube((200, 200, 100), 9, 12), так как сторон(рёбер) у куба - 12, то его стороны будут - [1, 1, 1, ....., 1]
+    # Пример 3: Cube((200, 200, 100), 9), так как сторон(рёбер) у куба - 12, то его стороны будут - [9, 9, ..., 9] (12)
+    # Пример 4: Cube((200, 200, 100), 9, 12), так как сторон(рёбер) у куба - 12, то его стороны будут - [1, 1, ..., 1]
     sides_count = 12
 
+    def __init__(self, r, g, b, *new_sides):
+        if len(new_sides) == 1:
+            super().__init__(r, g, b, *new_sides * 12)
+        else:
+            super().__init__(r, g, b, *new_sides)
+
     def reset_sides(self, side):  # Переопределяет __sides, сделав список из 12 одинаковы сторон.
-        pass
+        self.set_sides(*((side,) * 12))
 
     def get_volume(self):  # Возвращает объём куба.
         edge = self.get_sides()[0]
-        return edge ** 3
+        return math.pow(edge, 3)
 
 
 # Отладка
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
     # fig1 = Figure(0, 0, 0, )
     # fig2 = Figure(-1, 0, 0, )
@@ -242,6 +242,7 @@ if __name__ == '__main__':
     # circ.set_color(40, 50, 60)
     # c_color = circ.get_color()
     #
+    # circ = Circle(10, 20, 30, 100)
     # c = circ.sides_count
     # s = circ.get_square()
     # l = len(circ)
@@ -267,6 +268,11 @@ if __name__ == '__main__':
     # t_sides = tria.get_sides()
     # t_sqr = tria.get_square()
     #
+    # tria = Triangle(200, 200, 200, 3, 4, 5)
+    # t_sides = tria.get_sides()
+    # t_sqr = tria.get_square()
+    # t_len = len(tria)
+    #
     # tria.set_sides(9, 10, 11)
     # t_sides = tria.get_sides()
     # t_sqr = tria.get_square()
@@ -275,6 +281,49 @@ if __name__ == '__main__':
     # Пример 3: Cube((200, 200, 100), 9), так как сторон(рёбер) у куба - 12, то его стороны будут - [9, 9, 9, ....., 9] (12)
     # cub1 = Cube(200, 200, 100, 9)
     # b_len = len(cub1)
+    # b_vol = cub1.get_volume()
+    #
     # cub1.set_sides( *((2,) * 12))
     # b_len = len(cub1)
+    # b_vol = cub1.get_volume()
+    #
+    # cub1.reset_sides(3)
+    # b_len = len(cub1)
+    # b_vol = cub1.get_volume()
+    #
     # Пример 4: Cube((200, 200, 100), 9, 12), так как сторон(рёбер) у куба - 12, то его стороны будут - [1, 1, 1, ....., 1]
+
+
+# Отладка
+if __name__ == '__main__':
+    # Код для проверки:
+    circle1 = Circle(200, 200, 100, 10) # (Цвет, стороны)
+    cube1 = Cube(222, 35, 130, 6)
+
+    # # Проверка на изменение цветов:
+    circle1.set_color(55, 66, 77) # Изменится
+    print(circle1.get_color())
+    cube1.set_color(300, 70, 15) # Не изменится
+    print(cube1.get_color())
+
+    # # Проверка на изменение сторон:
+    cube1.set_sides(5, 3, 12, 4, 5) # Не изменится
+    print(cube1.get_sides())
+    circle1.set_sides(15) # Изменится
+    print(circle1.get_sides())
+
+    # # Проверка периметра (круга), это и есть длина:
+    print(len(circle1))
+
+    # # Проверка объёма (куба):
+    print(cube1.get_volume())
+
+# Выходные данные (консоль):
+#
+# [55, 66, 77]
+# [222, 35, 130]
+# [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
+# [15]
+# 15
+# 216
+#
