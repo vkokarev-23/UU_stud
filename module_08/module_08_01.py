@@ -53,7 +53,7 @@ def add_everything_up(a, b):
 if __name__ == '__main__':
 
     debug = False
-    debug = True
+    # debug = True
 
     print(add_everything_up(123.456, 'строка'))
     print(add_everything_up('яблоко', 4215))
